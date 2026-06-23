@@ -1,24 +1,48 @@
 #!/usr/bin/env python3
 
+import os
+
 from launch import LaunchDescription
-from launch.actions import DeclareLaunchArgument
-from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
+from launch.actions import DeclareLaunchArgument, OpaqueFunction
+from launch.conditions import IfCondition
+from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
-from launch_ros.substitutions import FindPackageShare
+from ament_index_python.packages import get_package_share_directory
+
+
+def launch_plotjuggler(context):
+    launch_plot = LaunchConfiguration("launch_plot")
+    plotjuggler_layout = LaunchConfiguration("plotjuggler_layout").perform(context)
+    arguments = []
+
+    if plotjuggler_layout and os.path.exists(plotjuggler_layout):
+        arguments = ["-l", plotjuggler_layout]
+
+    return [
+        Node(
+            package="plotjuggler",
+            executable="plotjuggler",
+            name="plotjuggler",
+            output="screen",
+            condition=IfCondition(launch_plot),
+            arguments=arguments,
+        )
+    ]
 
 
 def generate_launch_description():
     ati_ip = LaunchConfiguration("ati_ip")
     robot_ip = LaunchConfiguration("robot_ip")
-
-    rqt_config = PathJoinSubstitution([
-        FindPackageShare("edg_ur10"),
-        "launch",
-        "rqt_multiplot_ATI.xml",
-    ])
+    default_plotjuggler_layout = os.path.join(
+        get_package_share_directory("edg_ur10"),
+        "config",
+        "plotjuggler_netft.xml",
+    )
 
     return LaunchDescription([
         DeclareLaunchArgument("ati_ip", default_value="192.168.1.42"),
+        DeclareLaunchArgument("launch_plot", default_value="true"),
+        DeclareLaunchArgument("plotjuggler_layout", default_value=default_plotjuggler_layout),
         DeclareLaunchArgument("robot_ip", default_value="10.0.0.1"),
         Node(
             package="edg_ur10",
@@ -40,11 +64,5 @@ def generate_launch_description():
             name="data_logger",
             output="screen",
         ),
-        Node(
-            package="rqt_multiplot",
-            executable="rqt_multiplot",
-            name="rqt_multiplot_node",
-            output="screen",
-            arguments=["--multiplot-run-all", "--multiplot-config", rqt_config],
-        ),
+        OpaqueFunction(function=launch_plotjuggler),
     ])
