@@ -16,7 +16,7 @@ def launch_plotjuggler(context):
     arguments = []
 
     if plotjuggler_layout and os.path.exists(plotjuggler_layout):
-        arguments = ["-l", plotjuggler_layout]
+        arguments = ["--layout", plotjuggler_layout]
 
     return [
         Node(
@@ -36,7 +36,7 @@ def generate_launch_description():
     default_plotjuggler_layout = os.path.join(
         get_package_share_directory("edg_ur10"),
         "config",
-        "plotjuggler_netft.xml",
+        "PlotJuggler_default_layout.xml",
     )
 
     return LaunchDescription([
