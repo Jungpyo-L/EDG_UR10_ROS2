@@ -52,7 +52,7 @@ def generate_launch_description():
             parameters=[{"robot_ip": robot_ip}],
         ),
         Node(
-            package="netft_utils",
+            package="edg_netft_ros2",
             executable="netft_node",
             name="netft_node",
             output="screen",
